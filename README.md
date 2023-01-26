@@ -57,6 +57,11 @@ Any use of third-party trademarks or logos are subject to those third-party's po
 
 ![image info](./images/3.png) 
 
+**Call Plan Limits and Configuration Settings**
+
+![image info](./images/5.png) 
+
+![image info](./images/6.png) 
 
 Quick links:
 
