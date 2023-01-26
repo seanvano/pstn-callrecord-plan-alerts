@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+namespace callRecords.Models
+{
     public class Plan
     {
         [JsonPropertyName("licenseCapability")]
@@ -14,4 +16,4 @@ using System.Text.Json.Serialization;
         [JsonPropertyName("INTERNATIONAL_ALL_OutBound_Limit")]
         public int INTERNATIONAL_ALL_OutBound_Limit { get; set; }
     }
-
+}
