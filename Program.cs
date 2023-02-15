@@ -1,29 +1,30 @@
-﻿using System.Text.Json;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+	
+using System.Text.Json;
 using Microsoft.Identity.Client;
 using callRecords.Models;
 using Microsoft.Extensions.Configuration;
 
-// Initialize
+// Initialize Variables
 int row = 1;
 PlanDetails? planDetails = null;
 AuthenticationResult? result = null;
 var callLogRows = new PstnLogCallRows();
 Dictionary<string,int> PlanUsageTotals = new Dictionary<string,int>(16);
 
-// Initialize Configuration object
+// Initialize Configuration Object
 var builder = new ConfigurationBuilder()
     .AddUserSecrets<Program>();
-
 var configurationRoot = builder.Build();
-
 var msalConfig = configurationRoot.GetSection("MSAL").Get<MSALConfig>();
 
+// MSAL Work - Get Application Token using Confidential Client Flow
 string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
 var app = ConfidentialClientApplicationBuilder.Create(msalConfig.ClientID)
                                           .WithClientSecret(msalConfig.ClientSecret)
                                           .WithAuthority(new Uri(string.Format("https://login.microsoftonline.com/{0}", msalConfig.TenantID)))
                                           .Build();
-
 try
 {
     result = await app.AcquireTokenForClient(scopes).ExecuteAsync();
@@ -33,6 +34,7 @@ catch (MsalUiRequiredException)
     // Do Nothing
 }
 
+// If we are authenticated, then let's proceed
 if (result != null)
 {
     using (HttpClient httpClient = new HttpClient())
