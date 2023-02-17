@@ -1,0 +1,51 @@
+using callRecords.Models;
+
+namespace callRecords.Extensions
+{
+
+public class TeamsNotification
+{
+    public async Task SendAdaptiveCardWithTemplating(PlanDetails planDetails)
+    {
+        var templateJson = @"
+                            {
+                                ""type"": ""AdaptiveCard"",
+                                ""version"": ""1.0"",
+                                ""body"": [
+                                    {
+                                        ""type"": ""TextBlock"",
+                                        ""text"": ""Hello, {{Name}}!""
+                                    },
+                                    {
+                                        ""type"": ""TextBlock"",
+                                        ""text"": ""You are {{Age}} years old.""
+                                    }
+                                ]
+                            }";
+
+        var cardJson = ReplaceTemplateData(templateJson, new { Name = "ffdsfdsfs", Age = 35 }); // Replace template data with actual values
+        
+        var card = new AdaptiveCard();
+        card.Parse(cardJson);
+        
+        var attachment = new Attachment
+        {
+            ContentType = AdaptiveCard.ContentType,
+            Content = card,
+        };
+        
+        var activity = MessageFactory.Attachment(attachment);
+        
+        var teamsContext = turnContext.TurnState.Get<ITeamsContext>();
+        activity.ApplyConversationReference(turnContext.Activity.GetConversationReference(), true);
+        teamsContext.Teams.CreateConversationAsync(activity);
+    }
+
+    private string ReplaceTemplateData(string templateJson, object data)
+    {
+        var template = new AdaptiveCardTemplate(templateJson);
+        return template.Expand(data);
+    }
+}
+
+}

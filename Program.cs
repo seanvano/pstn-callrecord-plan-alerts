@@ -8,7 +8,9 @@ int row = 1;
 PlanDetails? planDetails = null;
 AuthenticationResult? result = null;
 var callLogRows = new PstnLogCallRows();
-Dictionary<string,int> PlanUsageTotals = new Dictionary<string,int>(16);
+//Dictionary<string,int> PlanUsageTotals = new Dictionary<string,int>(16);
+List<CallDetails> CallUsageTotals = new List<CallDetails>(16);
+
 
 // Initialize Configuration object
 var builder = new ConfigurationBuilder()
@@ -39,7 +41,7 @@ if (result != null)
     {
 
         // Look for records from the start of the period(first of the month) to the end of the current day (11:59:59 PM)
-        DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month ,1); // Beginging of this month
+        DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month -1 ,1); // Beginging of this month
         DateTime toDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month ,DateTime.Now.Day,11,59,59); // End of Today
         
         // Initial MS Graph Uri for the "getPstnCalls" API
@@ -89,29 +91,38 @@ if (result != null)
                         // Console.WriteLine(string.Format("destinationContext: {0}",call.destinationContext));
                         #endregion
                     
-                        // Get the Current PLan Details and Limits
+                        // Get the Current Plan Details and Limits
                         planDetails =  GetCurrentPlanTypeandLimits(call);
                     
-                        // Add the current call to the total for the plan type and Add to the PlanUsageTotals Dictionary
-                        int totalcurrentCallTypePlan;
-                        if (PlanUsageTotals.TryGetValue(planDetails.planTypeFriendlyName , out totalcurrentCallTypePlan))
-                            PlanUsageTotals[planDetails.planTypeFriendlyName] = (int)(totalcurrentCallTypePlan + (call.duration / 60));
+                        // check if the current call type is in the PlanUsageTotals Dictionary
+                        // if it is, add the current call duration to the total
+                        // if it is not, add the current call type and duration to the dictionary
+
+                        if(CallUsageTotals.Any(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName))
+                        {
+                            var currentCallDetails = CallUsageTotals.Where(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName).FirstOrDefault();
+                            currentCallDetails.callDurationTotal += (int)(call.duration / 60);
+                        }
                         else
-                            PlanUsageTotals.Add(planDetails.planTypeFriendlyName, (int)(call.duration / 60));
-                    }
+                        {
+                            CallUsageTotals.Add(new CallDetails { planDetails = planDetails, callDurationTotal = (int)(call.duration / 60)});
+                        }
+                   }
                 }
             } while(callLogRows != null && callLogRows.odatanextlink != null);
 
             // Output: the Plan Usage Totals
-            // a. loop through PlanUsageTotals and Display Totals by licenseCapability
+            // a. loop through CallUsageTotals and Display Totals by planTypeFriendlyName
             // b. Determine if we are under / over the plan limit
-            foreach (KeyValuePair<string, int> kvp in PlanUsageTotals)
+            foreach (var callUsageDetails in CallUsageTotals)
             {
                 Console.ForegroundColor = (ConsoleColor)(row++ % 14);
-                if (kvp.Value > planDetails.planLimit)
-                    Console.WriteLine(string.Format("You are over the {0} limit of {1} minutes, with {2} minutes consumed for the period(month).", kvp.Key, planDetails.planLimit,kvp.Value));
+                if (callUsageDetails.callDurationTotal > callUsageDetails.planDetails.planLimit)
+                    Console.WriteLine(string.Format("You are over the {0} limit of {1} minutes, with {2} minutes consumed for the period(month).", 
+                        callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
                 else
-                    Console.WriteLine(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed for the period(month).", kvp.Key, planDetails.planLimit,kvp.Value));
+                    Console.WriteLine(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed for the period(month)."
+                        , callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
             }
 
         }
@@ -170,17 +181,4 @@ KeyValuePair<string,int> getPlanLimitByLicenseCapability(string licenseCapabilit
                 return new KeyValuePair<string, int>(string.Format("{0}_INTERNATIONAL_ALL_OutBound_Type",plan.LicenseCapability), (int)plan.INTERNATIONAL_ALL_OutBound_Limit);
             }
             
-}
-
-public class PlanDetails
-{
-    public string planTypeFriendlyName { get; set; }
-    public int planLimit { get; set; }
-}
-
-public  class MSALConfig
-{
-    public string ClientID { get; set; }
-    public string ClientSecret { get; set; }
-    public string TenantID {get; set; }
 }
