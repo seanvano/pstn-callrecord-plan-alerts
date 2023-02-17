@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
 using Microsoft.Identity.Client;
 using callRecords.Models;
+using callRecords.Extensions;
 using Microsoft.Extensions.Configuration;
+
 
 // Initialize
 int row = 1;
@@ -124,6 +126,8 @@ if (result != null)
                     Console.WriteLine(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed for the period(month)."
                         , callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
             }
+
+           TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals);
 
         }
         catch (Exception ex)
