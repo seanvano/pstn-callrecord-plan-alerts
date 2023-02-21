@@ -1,0 +1,16 @@
+[
+   {
+      "planDetails":{
+         "planTypeFriendlyName":"MCOPSTN2_INTERNATIONAL_ALL_OutBound_Type",
+         "planLimit":600
+      },
+      "callDurationTotal":9
+   },
+   {
+      "planDetails":{
+         "planTypeFriendlyName":"MCOPSTN2_DOMESTIC_US_PR_CA_UK_OutBound_Type",
+         "planLimit":3000
+      },
+      "callDurationTotal":2
+   }
+]

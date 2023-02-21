@@ -1,0 +1,20 @@
+{
+   "type":"AdaptiveCard",
+   "version":"1.0",
+   "body":[
+      {
+         "type":"Container",
+         "$data":"${callDetails}",
+         "items":[
+            {
+               "type":"TextBlock",
+               "text":"This TextBlock is now scoped directly to 'planDetails.planTypeFriendlyName': ${planDetails.planTypeFriendlyName}"
+            },
+            {
+               "type":"TextBlock",
+               "text":"To break-out and access the root data, use: ${callDurationTotal}"
+            }
+         ]
+      }
+   ]
+}

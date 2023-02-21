@@ -16,6 +16,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.41.0" />
+    <Content Include=".\extensions\TeamsNotificationCard.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

@@ -127,7 +127,7 @@ if (result != null)
                         , callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
             }
 
-           TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals);
+           TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals).ConfigureAwait(false).GetAwaiter().GetResult();
 
         }
         catch (Exception ex)
