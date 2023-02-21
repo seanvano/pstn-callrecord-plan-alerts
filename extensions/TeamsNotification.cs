@@ -11,13 +11,14 @@ namespace callRecords.Extensions
 
     public static class TeamsNotification
 {
-        public static async Task SendAdaptiveCardWithTemplating(List<CallDetails> callDetails)
+        public static async Task SendAdaptiveCardWithTemplating(List<CallDetails> callDetails, GENConfig gENConfig)
         {
 
             var templateJson = File.ReadAllText(".\\extensions\\TeamsNotificationCard.json");
             var template = new AdaptiveCardTemplate(templateJson);
-            var cardJson = template.Expand(new { callDetails = callDetails });
+            var cardJson = template.Expand(new { callDetails = callDetails, ThresholdLimit = gENConfig.ThresholdLimit });
             var card = AdaptiveCards.AdaptiveCard.FromJson(cardJson).Card;
+            
             
             var attachment = new Attachment
             {
@@ -45,7 +46,7 @@ namespace callRecords.Extensions
             {
             using (var HttpClient = new HttpClient())
             {
-                var response = await HttpClient.PostAsync("https://microsoft.webhook.office.com/webhookb2/c86d09ef-012c-4eef-9acb-ddf8d9e473a5@72f988bf-86f1-41af-91ab-2d7cd011db47/IncomingWebhook/ad4cededac094484a53689e50e5b2837/8c1f8e92-6d3d-49d5-8c5d-fc789b6a2375", content).ConfigureAwait(false);
+                var response = await HttpClient.PostAsync(gENConfig.TeamsWebHook, content).ConfigureAwait(false);
 
                 if (!response.IsSuccessStatusCode)
                 {

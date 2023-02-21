@@ -1,20 +1,213 @@
 {
-    "type":"AdaptiveCard",
-    "version":"1.0",
-    "body":[
-       {
-          "type":"Container",
-          "$data":"${callDetails}",
-          "items":[
-             {
-                "type":"TextBlock",
-                "text":"This TextBlock is now scoped directly to 'planDetails.planTypeFriendlyName': ${planDetails.planTypeFriendlyName}"
-             },
-             {
-                "type":"TextBlock",
-                "text":"To break-out and access the root data, use: ${callDurationTotal}"
-             }
-          ]
-       }
-    ]
- }
+    "type": "AdaptiveCard",
+    "body": [
+        {
+            "type": "Container",
+            "style": "emphasis",
+            "items": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "size": "Large",
+                                    "weight": "Bolder",
+                                    "text": "**PSTN USAGE NOTIFICATION**",
+                                    "wrap": true,
+                                    "style": "heading"
+                                }
+                            ],
+                            "width": "stretch"
+                        },
+                        {
+                            "type": "Column",
+                            "width": "auto",
+                            "items": [
+                                {
+                                    "type": "Image",
+                                    "url": "https://adaptivecards.io/content/teams-logo.png",
+                                    "size": "Small"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "bleed": true
+        },
+        {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "size": "ExtraLarge",
+                                    "text": "Call Plan Usage Minutes",
+                                    "wrap": true,
+                                    "style": "heading"
+                                }
+                            ],
+                            "width": "stretch"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Container",
+            "spacing": "Large",
+            "style": "emphasis",
+            "items": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "Bolder",
+                                    "text": "PLAN",
+                                    "wrap": true
+                                }
+                            ],
+                            "width": "360px"
+                        },
+                        {
+                            "type": "Column",
+                            "spacing": "Large",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "Bolder",
+                                    "text": "LIMIT",
+                                    "wrap": true,
+                                    "spacing": "None",
+                                    "horizontalAlignment": "Center"
+                                }
+                            ],
+                            "width": "60px"
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "Bolder",
+                                    "text": "USAGE",
+                                    "wrap": true,
+                                    "horizontalAlignment": "Center"
+                                }
+                            ],
+                            "width": "60px"
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "Bolder",
+                                    "text": "STATUS",
+                                    "wrap": true,
+                                    "horizontalAlignment": "Center"
+                                }
+                            ],
+                            "width": "60px"
+                        }
+                    ]
+                }
+            ],
+            "bleed": true
+        },
+        {
+            "$data": "${callDetails}",
+            "type": "Container",
+            "items": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "${planDetails.planTypeFriendlyName}",
+                                    "wrap": true
+                                }
+                            ],
+                            "width": "360px"
+                        },
+                        {
+                            "type": "Column",
+                            "spacing": "Medium",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "${planDetails.planLimit}",
+                                    "wrap": true,
+                                    "horizontalAlignment": "Center"
+                                }
+                            ],
+                            "width": "60px"
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "${callDurationTotal}",
+                                    "wrap": true,
+                                    "horizontalAlignment": "Center"
+                                }
+                            ],
+                            "width": "60px"
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "${if(less((callDurationTotal / planDetails.planLimit) * 100 ,$root.ThresholdLimit), '👍', '⚠')} ${callDurationTotal * 100 / planDetails.planLimit}%",
+                                    "spacing": "None",
+                                    "wrap": true,
+                                    "horizontalAlignment": "Center"
+                                }
+                            ],
+                            "width": "60px"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "ActionSet",
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "see the Teams - PSTN Usage Report",
+                            "style": "positive",
+                            "url": "https://admin.teams.microsoft.com/analytics/reports"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "msteams": {
+          "width": "full"
+        },
+    "version": "1.4",
+    "fallbackText": "This card requires Adaptive Cards v1.2 support to be rendered properly."
+}

@@ -7,5 +7,6 @@ namespace callRecords.Models
     {
         public PlanDetails planDetails { get; set; }
         public int callDurationTotal { get; set; }
+        
     }
 }

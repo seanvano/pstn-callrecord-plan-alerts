@@ -5,23 +5,20 @@ using callRecords.Extensions;
 using Microsoft.Extensions.Configuration;
 
 
-// Initialize
-int row = 1;
+// Initialize Vars
 PlanDetails? planDetails = null;
 AuthenticationResult? result = null;
 var callLogRows = new PstnLogCallRows();
-//Dictionary<string,int> PlanUsageTotals = new Dictionary<string,int>(16);
 List<CallDetails> CallUsageTotals = new List<CallDetails>(16);
-
 
 // Initialize Configuration object
 var builder = new ConfigurationBuilder()
     .AddUserSecrets<Program>();
-
 var configurationRoot = builder.Build();
-
 var msalConfig = configurationRoot.GetSection("MSAL").Get<MSALConfig>();
+var GenConfig = configurationRoot.GetSection("GEN").Get<GENConfig>();
 
+// Start Authentication...
 string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
 var app = ConfidentialClientApplicationBuilder.Create(msalConfig.ClientID)
                                           .WithClientSecret(msalConfig.ClientSecret)
@@ -103,31 +100,31 @@ if (result != null)
                         if(CallUsageTotals.Any(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName))
                         {
                             var currentCallDetails = CallUsageTotals.Where(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName).FirstOrDefault();
+                            // Cumulative add the current call duration to the total
                             currentCallDetails.callDurationTotal += (int)(call.duration / 60);
+                            
                         }
                         else
                         {
-                            CallUsageTotals.Add(new CallDetails { planDetails = planDetails, callDurationTotal = (int)(call.duration / 60)});
+                            CallUsageTotals.Add(new CallDetails 
+                                                {   planDetails = planDetails, 
+                                                    callDurationTotal = (int)(call.duration / 60)
+                                                });
                         }
                    }
                 }
             } while(callLogRows != null && callLogRows.odatanextlink != null);
 
-            // Output: the Plan Usage Totals
-            // a. loop through CallUsageTotals and Display Totals by planTypeFriendlyName
-            // b. Determine if we are under / over the plan limit
-            foreach (var callUsageDetails in CallUsageTotals)
+            // Send the Notification based on configuration setting Console or Teams...
+            switch (GenConfig.NotificationType)
             {
-                Console.ForegroundColor = (ConsoleColor)(row++ % 14);
-                if (callUsageDetails.callDurationTotal > callUsageDetails.planDetails.planLimit)
-                    Console.WriteLine(string.Format("You are over the {0} limit of {1} minutes, with {2} minutes consumed for the period(month).", 
-                        callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
-                else
-                    Console.WriteLine(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed for the period(month)."
-                        , callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
+                case "Teams":
+                        TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig).ConfigureAwait(false).GetAwaiter().GetResult();
+                        break; 
+                case "Console":
+                        ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig).ConfigureAwait(false).GetAwaiter().GetResult();
+                        break;
             }
-
-           TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals).ConfigureAwait(false).GetAwaiter().GetResult();
 
         }
         catch (Exception ex)
