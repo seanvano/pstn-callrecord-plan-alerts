@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "pstn_callrecord_plan_alerts": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7175",
+      "launchBrowser": false
+    }
+  }
+}
