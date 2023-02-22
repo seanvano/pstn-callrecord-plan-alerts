@@ -5,13 +5,14 @@ using Microsoft.Bot.Connector.Teams.Models;
 using Microsoft.Bot.Schema;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace callRecords.Extensions
 {
 
     public static class TeamsNotification
 {
-        public static async Task SendAdaptiveCardWithTemplating(List<CallDetails> callDetails, GENConfig gENConfig)
+        public static async Task SendAdaptiveCardWithTemplating(List<CallDetails> callDetails, GENConfig gENConfig, ILogger log)
         {
 
             var templateJson = File.ReadAllText(".\\extensions\\TeamsNotificationCard.json");
@@ -52,6 +53,9 @@ namespace callRecords.Extensions
                 {
                     throw new Exception($"Failed to send message to Teams. Status code: {response.StatusCode}");
                 } 
+
+                log.LogInformation(string.Format("Message Sent to Teams Channel. Executed at: {0}", DateTime.Now));
+
             }
             }
             catch (Exception ex)
