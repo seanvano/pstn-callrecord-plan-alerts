@@ -12,7 +12,7 @@ namespace callRecords
     public class PSTNCallrecordPplanAlertsDailyTrigger
     {
         [FunctionName("CallrecordTrigger")]
-        public async Task RunAsync([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, ILogger log)
+        public async Task RunAsync([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         
