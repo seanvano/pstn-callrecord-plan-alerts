@@ -12,9 +12,9 @@ namespace callRecords
     public class PSTNCallrecordPplanAlertsDailyTrigger
     {
         [FunctionName("CallrecordTrigger")]
-        public async Task RunAsync([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
+        public async Task RunAsync([TimerTrigger("0 0 22 * * *")]TimerInfo myTimer, ILogger log)
         {
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            log.LogInformation($"Getting Call Records for the current period.Executed at: {DateTime.Now}");
         
             // Initialize Vars
             PlanDetails? planDetails = null;
@@ -41,9 +41,9 @@ namespace callRecords
             {
                 result = await app.AcquireTokenForClient(scopes).ExecuteAsync();
             }
-            catch (MsalUiRequiredException)
+            catch (MsalUiRequiredException ex)
             {
-                // Do Nothing
+                log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
             }
 
             if (result != null)
@@ -131,17 +131,17 @@ namespace callRecords
                         switch (GenConfig.NotificationType)
                         {
                             case "Teams":
-                                    TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
                                     break; 
                             case "Console":
-                                    ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
                                     break;
                         }
 
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
+                        log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
                     }
                 }
             }
