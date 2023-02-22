@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using System.Text.Json;
 using Microsoft.Identity.Client;
 using callRecords.Models;
 using callRecords.Extensions;
