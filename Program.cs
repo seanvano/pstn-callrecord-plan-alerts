@@ -187,7 +187,8 @@ namespace callRecords
     KeyValuePair<string,int> getPlanLimitByLicenseCapability(string licenseCapability, bool callIsDomestic, bool inSelectCountriesFlag)
     {
             // Deserialize plans.json to get the plan limits
-            string plansJson = File.ReadAllText("plans.json");
+            string plansFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\plans.json");
+            string plansJson = File.ReadAllText(plansFile);
             List<Plan> callingPlans = JsonSerializer.Deserialize<List<Plan>>(plansJson);
                         
             // linq query to get element in List<Plan> where Plan.LicenseCapability == licenseCapability

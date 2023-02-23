@@ -6,6 +6,7 @@ using Microsoft.Bot.Schema;
 using Newtonsoft.Json;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace callRecords.Extensions
 {
@@ -14,8 +15,8 @@ namespace callRecords.Extensions
 {
         public static async Task SendAdaptiveCardWithTemplating(List<CallDetails> callDetails, GENConfig gENConfig, ILogger log)
         {
-
-            var templateJson = File.ReadAllText(".\\extensions\\TeamsNotificationCard.json");
+            string teamsNotificationCardFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\extensions\\TeamsNotificationCard.json");
+            var templateJson = File.ReadAllText(teamsNotificationCardFile);
             var template = new AdaptiveCardTemplate(templateJson);
             var cardJson = template.Expand(new { callDetails = callDetails, ThresholdLimit = gENConfig.ThresholdLimit });
             var card = AdaptiveCards.AdaptiveCard.FromJson(cardJson).Card;
