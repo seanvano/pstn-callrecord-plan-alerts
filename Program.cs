@@ -105,26 +105,30 @@ namespace callRecords
                                     // Console.WriteLine(string.Format("destinationContext: {0}",call.destinationContext));
                                     #endregion
                                 
-                                    // Get the Current Plan Details and Limits
-                                    planDetails =  GetCurrentPlanTypeandLimits(call);
-                                
-                                    // check if the current call type is in the PlanUsageTotals Dictionary
-                                    // if it is, add the current call duration to the total
-                                    // if it is not, add the current call type and duration to the dictionary
+                                    // We are only Concerned with outgoing calls...
+                                    if (call.callType == "user_out")
+                                    {
+                                        // Get the Current Plan Details and Limits
+                                        planDetails =  GetCurrentPlanTypeandLimits(call);
+                                    
+                                        // check if the current call type is in the PlanUsageTotals Dictionary
+                                        // if it is, add the current call duration to the total
+                                        // if it is not, add the current call type and duration to the dictionary
 
-                                    if(CallUsageTotals.Any(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName))
-                                    {
-                                        var currentCallDetails = CallUsageTotals.Where(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName).FirstOrDefault();
-                                        // Cumulative add the current call duration to the total
-                                        currentCallDetails.callDurationTotal += (int)(call.duration / 60);
-                                        
-                                    }
-                                    else
-                                    {
-                                        CallUsageTotals.Add(new CallDetails 
-                                                            {   planDetails = planDetails, 
-                                                                callDurationTotal = (int)(call.duration / 60)
-                                                            });
+                                        if(CallUsageTotals.Any(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName))
+                                        {
+                                            var currentCallDetails = CallUsageTotals.Where(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName).FirstOrDefault();
+                                            // Cumulative add the current call duration to the total
+                                            currentCallDetails.callDurationTotal += (int)(call.duration / 60);
+                                            
+                                        }
+                                        else
+                                        {
+                                            CallUsageTotals.Add(new CallDetails 
+                                                                {   planDetails = planDetails, 
+                                                                    callDurationTotal = (int)(call.duration / 60)
+                                                                });
+                                        }
                                     }
                             }
                             }
