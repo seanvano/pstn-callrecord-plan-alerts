@@ -119,14 +119,17 @@ namespace callRecords
                                         {
                                             var currentCallDetails = CallUsageTotals.Where(p => p.planDetails.planTypeFriendlyName == planDetails.planTypeFriendlyName).FirstOrDefault();
                                             // Cumulative add the current call duration to the total
-                                            currentCallDetails.callDurationTotal += (int)(call.duration / 60);
+                                            if (currentCallDetails != null)
+                                            {
+                                                currentCallDetails.callDurationTotal += ((float)call.duration) / 60;
+                                            }
                                             
                                         }
                                         else
                                         {
                                             CallUsageTotals.Add(new CallDetails 
                                                                 {   planDetails = planDetails, 
-                                                                    callDurationTotal = (int)(call.duration / 60)
+                                                                    callDurationTotal = ((float)call.duration) / 60
                                                                 });
                                         }
                                     }

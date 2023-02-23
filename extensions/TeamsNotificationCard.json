@@ -115,7 +115,7 @@
                                 {
                                     "type": "TextBlock",
                                     "weight": "Bolder",
-                                    "text": "STATUS",
+                                    "text": "% USED",
                                     "wrap": true,
                                     "horizontalAlignment": "Center"
                                 }
@@ -163,7 +163,7 @@
                             "items": [
                                 {
                                     "type": "TextBlock",
-                                    "text": "${callDurationTotal}",
+                                    "text": "${formatNumber(callDurationTotal,2)}",
                                     "wrap": true,
                                     "horizontalAlignment": "Center"
                                 }
@@ -175,7 +175,7 @@
                             "items": [
                                 {
                                     "type": "TextBlock",
-                                    "text": "${if(less((callDurationTotal / planDetails.planLimit) * 100 ,$root.ThresholdLimit), '👍', '⚠')} ${callDurationTotal * 100 / planDetails.planLimit}%",
+                                    "text": "${if(less((callDurationTotal / planDetails.planLimit) * 100 ,$root.ThresholdLimit), '👍', '⚠')} ${formatNumber(callDurationTotal * 100 / planDetails.planLimit,1)}%",
                                     "spacing": "None",
                                     "wrap": true,
                                     "horizontalAlignment": "Center"
