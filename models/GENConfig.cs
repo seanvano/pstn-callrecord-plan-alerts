@@ -8,5 +8,8 @@ namespace callRecords.Models
         public string NotificationType { get; set; }
         public int ThresholdLimit { get; set; }
         public string TeamsWebHook {get; set; }
+        public string ClientID { get; set; }
+        public string ClientSecret { get; set; }
+        public string TenantID {get; set; }
     }
 }

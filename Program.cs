@@ -30,14 +30,13 @@ namespace callRecords
                 .AddUserSecrets(Assembly.GetExecutingAssembly(),true)
                 .AddEnvironmentVariables();
             var configurationRoot = builder.Build();
-            var msalConfig = configurationRoot.GetSection("MSAL").Get<MSALConfig>();
-            var GenConfig = configurationRoot.GetSection("GEN").Get<GENConfig>();
+            var GenConfig = configurationRoot.Get<GENConfig>();
 
             // Start Authentication...
             string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
-            var app = ConfidentialClientApplicationBuilder.Create(msalConfig.ClientID)
-                                                    .WithClientSecret(msalConfig.ClientSecret)
-                                                    .WithAuthority(new Uri(string.Format("https://login.microsoftonline.com/{0}", msalConfig.TenantID)))
+            var app = ConfidentialClientApplicationBuilder.Create(GenConfig.ClientID)
+                                                    .WithClientSecret(GenConfig.ClientSecret)
+                                                    .WithAuthority(new Uri(string.Format("https://login.microsoftonline.com/{0}", GenConfig.TenantID)))
                                                     .Build();
 
             try
