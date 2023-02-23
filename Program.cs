@@ -15,7 +15,7 @@ namespace callRecords
     public class PSTNCallrecordPplanAlertsDailyTrigger
     {
         [FunctionName("CallrecordTrigger")]
-        public async Task RunAsync([TimerTrigger("0 * * * * *")]TimerInfo myTimer, ILogger log)
+        public async Task RunAsync([TimerTrigger("0 0/1 * * *")]TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"Getting Call Records for the current period.Executed at: {DateTime.Now}");
         
