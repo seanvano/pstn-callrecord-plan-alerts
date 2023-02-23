@@ -15,7 +15,10 @@ namespace callRecords.Extensions
 {
         public static async Task SendAdaptiveCardWithTemplating(List<CallDetails> callDetails, GENConfig gENConfig, ILogger log)
         {
-            string teamsNotificationCardFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\extensions\\TeamsNotificationCard.json");
+            string teamsNotificationCardFile = Path.Combine(PSTNCallrecordPplanAlertsDailyTrigger.baseFunctionsFolder, 
+                                               "extensions", 
+                                               "TeamsNotificationCard.json");
+                                               
             var templateJson = File.ReadAllText(teamsNotificationCardFile);
             var template = new AdaptiveCardTemplate(templateJson);
             var cardJson = template.Expand(new { callDetails = callDetails, ThresholdLimit = gENConfig.ThresholdLimit });

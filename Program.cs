@@ -9,15 +9,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.WebJobs;
 using System.Reflection;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace callRecords
 {
     public class PSTNCallrecordPplanAlertsDailyTrigger
     {
+        public static string baseFunctionsFolder = string.Empty;
+
         [FunctionName("CallrecordTrigger")]
-        public async Task RunAsync([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
+        public async Task RunAsync([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext executionContext)
         {
             log.LogInformation($"Getting Call Records for the current period.Executed at: {DateTime.Now}");
+            
+            // Set the baseFunctionsFolder variable to the path of the current function
+            baseFunctionsFolder = executionContext.FunctionAppDirectory;
         
             // Initialize Vars
             PlanDetails? planDetails = null;
@@ -187,7 +193,7 @@ namespace callRecords
     KeyValuePair<string,int> getPlanLimitByLicenseCapability(string licenseCapability, bool callIsDomestic, bool inSelectCountriesFlag)
     {
             // Deserialize plans.json to get the plan limits
-            string plansFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "..\\plans.json");
+            string plansFile = Path.Combine(baseFunctionsFolder, "plans.json");
             string plansJson = File.ReadAllText(plansFile);
             List<Plan> callingPlans = JsonSerializer.Deserialize<List<Plan>>(plansJson);
                         
