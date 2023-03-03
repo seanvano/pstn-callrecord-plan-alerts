@@ -5,19 +5,19 @@
         "INTERNATIONAL_ALL_OutBound_Limit": 0
 
     },
-    { "licenseCapability":"MCOPSTN2",
+    { "licenseCapability":"MCOPSTN2D",
         "DOMESTIC_US_PR_CA_UK_OutBound_Limit":3000,
         "DOMESTIC_Other_OutBound_Limit":1200,
         "INTERNATIONAL_ALL_OutBound_Limit": 600
 
     },
-    { "licenseCapability":"MCOPSTN5",
+    { "licenseCapability":"MCOPSTN5D",
         "DOMESTIC_US_PR_CA_UK_OutBound_Limit":120,
         "DOMESTIC_Other_OutBound_Limit":120,
         "INTERNATIONAL_ALL_OutBound_Limit": 0
 
     },
-    { "licenseCapability":"MCOPSTN6",
+    { "licenseCapability":"MCOPSTN6D",
         "DOMESTIC_US_PR_CA_UK_OutBound_Limit":240,
         "DOMESTIC_Other_OutBound_Limit":240,
         "INTERNATIONAL_ALL_OutBound_Limit": 0

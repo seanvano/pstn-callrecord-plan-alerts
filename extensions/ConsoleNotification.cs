@@ -16,6 +16,7 @@ namespace callRecords.Extensions
         {
            int row = 1;
            
+           // TODO: Update to include threashold and output if pan is not in plans.json
            foreach (var callUsageDetails in callDetails)
                 {
                     Console.ForegroundColor = (ConsoleColor)(row++ % 14);

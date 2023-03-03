@@ -16,14 +16,16 @@ namespace callRecords
     public class PSTNCallrecordPplanAlertsDailyTrigger
     {
         public static string baseFunctionsFolder = string.Empty;
+        public static ILogger logger = null; 
 
         [FunctionName("CallrecordTrigger")]
-        public async Task RunAsync([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext executionContext)
+        public async Task RunAsync([TimerTrigger("%CronTimerSchedule%")]TimerInfo myTimer, ILogger log, ExecutionContext executionContext)
         {
             log.LogInformation($"Getting Call Records for the current period.Executed at: {DateTime.Now}");
             
             // Set the baseFunctionsFolder variable to the path of the current function
             baseFunctionsFolder = executionContext.FunctionAppDirectory;
+            logger = log;
         
             // Initialize Vars
             PlanDetails? planDetails = null;
@@ -60,7 +62,7 @@ namespace callRecords
                 {
 
                     // Look for records from the start of the period(first of the month) to the end of the current day (11:59:59 PM)
-                    DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month ,1); // Beginging of this month
+                    DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month -2 ,1); // Beginging of this month
                     DateTime toDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month , DateTime.Now.Day,11,59,59); // End of Today
                     
                     // Initial MS Graph Uri for the "getPstnCalls" API
@@ -68,10 +70,10 @@ namespace callRecords
                     
                     // Add Authorization Header
                     httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.AccessToken);
-
-                    try
+                    
+                    do
                     {
-                        do
+                        try
                         {
                             // Get the Call Records via MS Graph API and Deserialize the JSON into a PstnLogCallRows object
                             var res = httpClient.GetAsync(url).Result;
@@ -138,25 +140,26 @@ namespace callRecords
                                                                 });
                                         }
                                     }
+                                }
                             }
-                            }
-                        } while(callLogRows != null && callLogRows.odatanextlink != null);
-
-                        // Send the Notification based on configuration setting Console or Teams...
-                        switch (GenConfig.NotificationType)
+                        }                            
+                        catch (Exception ex)
                         {
-                            case "Teams":
-                                    TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
-                                    break; 
-                            case "Console":
-                                    ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
-                                    break;
+                            log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
+                            continue;
                         }
+                    
+                    } while(callLogRows != null && callLogRows.odatanextlink != null);
 
-                    }
-                    catch (Exception ex)
+                    // EXTENSIONS: Send the Notification based on configuration setting to Console or Teams...
+                    switch (GenConfig.NotificationType)
                     {
-                        log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
+                        case "Teams":
+                                TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                break; 
+                        case "Console":
+                                ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                break;
                     }
                 }
             }
@@ -199,6 +202,14 @@ namespace callRecords
                         
             // linq query to get element in List<Plan> where Plan.LicenseCapability == licenseCapability
             Plan plan = callingPlans.Where(p => p.LicenseCapability == licenseCapability).FirstOrDefault();
+
+            // If the plan is null, this means we do not have Plan limits configured for this LicenseCapability. Please Update the plans.json file
+            if(plan == null)
+            {
+                plan = new Plan { LicenseCapability = licenseCapability, DOMESTIC_US_PR_CA_UK_OutBound_Limit = -1, DOMESTIC_Other_OutBound_Limit = -1, INTERNATIONAL_ALL_OutBound_Limit = -1 };
+                logger.LogError(string.Format("Plan Limit not configured for LicenseCapability: {0}. Please Update the plans.json file",licenseCapability));
+            }
+
 
             if (callIsDomestic)
             {
