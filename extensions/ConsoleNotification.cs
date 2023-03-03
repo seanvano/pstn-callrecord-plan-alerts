@@ -16,16 +16,22 @@ namespace callRecords.Extensions
         {
            int row = 1;
            
-           // TODO: Update to include threashold and output if pan is not in plans.json
            foreach (var callUsageDetails in callDetails)
                 {
                     Console.ForegroundColor = (ConsoleColor)(row++ % 14);
-                    if (callUsageDetails.callDurationTotal > callUsageDetails.planDetails.planLimit)
-                        log.LogInformation(string.Format("You are over the {0} limit of {1} minutes, with {2} minutes consumed for the period(month).", 
-                            callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
+
+                    if ((callUsageDetails.callDurationTotal / callUsageDetails.planDetails.planLimit) * 100 > gENConfig.ThresholdLimit)
+                        log.LogWarning(string.Format("You are over the {0} limit of {1} minutes, with {2} minutes consumed ({3:F1}%) for the period(month).", 
+                            callUsageDetails.planDetails.planTypeFriendlyName, 
+                            callUsageDetails.planDetails.planLimit,
+                            callUsageDetails.callDurationTotal,
+                            (float)(callUsageDetails.callDurationTotal / callUsageDetails.planDetails.planLimit) * 100));
                     else
-                        log.LogInformation(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed for the period(month)."
-                            , callUsageDetails.planDetails.planTypeFriendlyName, callUsageDetails.planDetails.planLimit,callUsageDetails.callDurationTotal));
+                        log.LogInformation(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed ({3:F1}%) for the period(month).",
+                            callUsageDetails.planDetails.planTypeFriendlyName, 
+                            callUsageDetails.planDetails.planLimit,
+                            callUsageDetails.callDurationTotal,
+                            (float)(callUsageDetails.callDurationTotal / callUsageDetails.planDetails.planLimit) * 100));
                 } 
         }
 
