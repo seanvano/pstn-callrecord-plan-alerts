@@ -21,13 +21,16 @@ namespace callRecords.Extensions
                     Console.ForegroundColor = (ConsoleColor)(row++ % 14);
 
                     if ((callUsageDetails.callDurationTotal / callUsageDetails.planDetails.planLimit) * 100 > gENConfig.ThresholdLimit)
-                        log.LogWarning(string.Format("You are over the {0} limit of {1} minutes, with {2} minutes consumed ({3:F1}%) for the period(month).", 
+                        log.LogWarning(string.Format("You have hit the threshold of {0}% for {1} with a limit of {2} minutes, with {3} minutes consumed ({4:F1}%) for the period(month).", 
+                            gENConfig.ThresholdLimit,
                             callUsageDetails.planDetails.planTypeFriendlyName, 
                             callUsageDetails.planDetails.planLimit,
                             callUsageDetails.callDurationTotal,
                             (float)(callUsageDetails.callDurationTotal / callUsageDetails.planDetails.planLimit) * 100));
+                            
                     else
-                        log.LogInformation(string.Format("You are under the {0} limit of {1} minutes, with {2} minutes consumed ({3:F1}%) for the period(month).",
+                        log.LogInformation(string.Format("You are under the threshold of {0}% for {1} with a limit of {2} minutes, with {3} minutes consumed ({4:F1}%) for the period(month).",
+                            gENConfig.ThresholdLimit,
                             callUsageDetails.planDetails.planTypeFriendlyName, 
                             callUsageDetails.planDetails.planLimit,
                             callUsageDetails.callDurationTotal,

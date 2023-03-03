@@ -164,6 +164,7 @@ namespace callRecords
                             }
                             else
                             {
+                                log.LogWarning(string.Format("Threshold has exceeded at least one pool. Notifications are being sent. Executed at: {0}", DateTime.Now));
                                 SendNotification = true;
                             }
                     }
