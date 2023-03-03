@@ -11,17 +11,93 @@
 
 # Setup
 
-Clone Repo
+1. Fork Repo
+
+![image info](./images/8.png) 
+
+2. App Registration Creation
+
+    - Create a new App Registration in AAD and select "Web" for the Redirect URI and leave the value empty. Click "Register"
+    - Create a Client Secret and give it a period of your choosing
+    - Make the below modifications to support oAuth Flowtype and permissions required:
+
+![image info](./images/1.png) 
+
+![image info](./images/2.png) 
+
+![image info](./images/3.png) 
+
+1. Create Resource Group
+
+    navigate to http://portal.azure.com and Create a Resource Group in the appropriate region
+
+    ![image info](./images/9.png) 
+
+2. Create Azure Function
+
+    Select the Market place template for Function App
+    
+    ![image info](./images/10.png) 
+
+    Create an Azure function with the following properties:
+    - Publish: Code
+    - Runtime Stack: .NET
+    - Version: 6
+    - Operating System: Windows
+    - Plan type: Comsumption (Serverless)
+  
+    ![image info](./images/11.a.png) 
+    
+    ![image info](./images/11.b.png) 
+    
+    ![image info](./images/11.c.png) 
+    
+    ![image info](./images/11.d.png) 
+
+3. Configuration
+
+    Navigate to the Function App-->Settings-->Configuration
+    
+    ![image info](./images/12.png) 
+
+    Add the following App Configuration settings
+
+    - Name: TenantID, Value: [TENANT ID OF YOUR APP REGISTRATION CREATED EARLIER]
+    - Name: ClientID, Value: [CLIENT ID OF YOUR APP REGISTRATION CREATED EARLIER]
+    - Name: ClientSecret, Value: [ClientSecret OF YOUR APP REGISTRATION CREATED EARLIER]
+    - Name: TeamsWebHook, Value: [INCOMING WEBHOOK URI TO ACCEPT NOTIFICATION]
+    - Name: ThresholdLimit, Value: [THRESHOLD WHEN CLOSE TO PLAN LIMIT, DEFAULT IS 80 FOR 80%]
+    - Name: NotificationType, Value: [HOW TO BE NOTIFIED: Teams, Console, or ALL]
+    - Name: SendOnlyWhenThresholdExceeded, Value: [true or false]
+    - Name: CronTimerSchedule, Value: [a CRON syntax string to run the function, Default setting is every 10 minutes for testing. please change this to once a day ]
+      - Some example values:
+        - 0 */10 * * * * = Once every 10 Minutes
+        - 0 */1 * * * * = Once every Minute
+        - 0 0 22 * * * = Once every day at 10:00PM
+     
+# Run
+
+Restart the function once the configuration has completed. you can do so at the Function App-->Overview Page:
+
+![image info](./images/13.png) 
+
+You can view the log tail by navigating to Function App-->Monitoring-->Log Stream and click "start":
+
+![image info](./images/14.png) 
+
+Check for errors. 
+
+Done: You should see Console Information showing in the Log Stream as Well as Teams Messages in the channel you setup your incoming webhook if all is correct!
+
+# Build / Debug
 
 ```bash
+
 git clone https://github.com/microsoft/pstn-callrecord-plan-alerts.git
-```
 
-# Build
-
-```bash
 [C#]
-dotnet run build
+dotnet build
+func start
 
 
 ```
@@ -48,14 +124,6 @@ Use of Microsoft trademarks or logos in modified versions of this project must n
 Any use of third-party trademarks or logos are subject to those third-party's policies.
 
 # Notes
-
-**App Registration Modifications**
-
-![image info](./images/1.png) 
-
-![image info](./images/2.png) 
-
-![image info](./images/3.png) 
 
 **Call Plan Limits and Configuration Settings**
 
