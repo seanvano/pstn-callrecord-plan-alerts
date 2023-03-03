@@ -63,8 +63,7 @@ namespace callRecords
                 {
 
                     // Look for records from the start of the period(first of the month) to the end of the current day (11:59:59 PM)
-                    //DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month, 1); // Beginging of this month
-                    DateTime fromDateTime = DateTime.Now.AddDays(-89); // Beginging of this month
+                    DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month, 1); // Beginging of this month
                     DateTime toDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month , DateTime.Now.Day,11,59,59); // End of Today
                     
                     // Initial MS Graph Uri for the "getPstnCalls" API
