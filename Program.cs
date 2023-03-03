@@ -31,6 +31,7 @@ namespace callRecords
             PlanDetails? planDetails = null;
             AuthenticationResult? result = null;
             var callLogRows = new PstnLogCallRows();
+            var SendNotification = false;
             List<CallDetails> CallUsageTotals = new List<CallDetails>(16);
 
             // Initialize Configuration object
@@ -152,19 +153,42 @@ namespace callRecords
                     
                     } while(callLogRows != null && callLogRows.odatanextlink != null);
 
-                    // EXTENSIONS: Send the Notification based on configuration setting to Console or Teams...
-                    switch (GenConfig.NotificationType)
+                    // Check if we need to send a notification
+                    if (GenConfig.SendOnlyWhenThresholdExceeded)
                     {
-                        case "Teams":
-                                TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
-                                break; 
-                        case "Console":
-                                ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
-                                break;
-                        case "ALL":
-                                TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
-                                ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
-                                break;
+                            // If we are under the threshold limit for each pool , then do not send a notification
+                            if (CallUsageTotals.Any(p => (p.callDurationTotal / p.planDetails.planLimit) * 100 < GenConfig.ThresholdLimit))
+                            {
+                                log.LogInformation(string.Format("Threshold not exceeded for any pools. No Notification sent. Executed at: {0}", DateTime.Now));
+                                return;
+                            }
+                            else
+                            {
+                                SendNotification = true;
+                            }
+                    }
+                    else
+                    {
+                        SendNotification = true;
+                    }
+                    
+                    if (SendNotification)
+                    {                    
+                        // EXTENSIONS: Send the Notification based on configuration setting to Console or Teams...
+                        // Send the Notification based on configuration setting to Console, Teams. or ALL...
+                        switch (GenConfig.NotificationType)
+                        {
+                            case "Teams":
+                                    TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    break; 
+                            case "Console":
+                                    ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    break;
+                            case "ALL":
+                                    TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    break;
+                        }
                     }
                 }
             }
