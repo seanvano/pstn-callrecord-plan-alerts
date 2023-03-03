@@ -140,6 +140,7 @@
                                 {
                                     "type": "TextBlock",
                                     "text": "${planDetails.planTypeFriendlyName}",
+                                    "color": "${if(less(planDetails.planLimit ,0), 'attention', 'good')}",
                                     "wrap": true
                                 }
                             ],

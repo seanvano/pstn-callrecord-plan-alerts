@@ -16,19 +16,22 @@ namespace callRecords
     public class PSTNCallrecordPplanAlertsDailyTrigger
     {
         public static string baseFunctionsFolder = string.Empty;
+        public static ILogger logger = null; 
 
         [FunctionName("CallrecordTrigger")]
-        public async Task RunAsync([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log, ExecutionContext executionContext)
+        public async Task RunAsync([TimerTrigger("%CronTimerSchedule%")]TimerInfo myTimer, ILogger log, ExecutionContext executionContext)
         {
             log.LogInformation($"Getting Call Records for the current period.Executed at: {DateTime.Now}");
             
             // Set the baseFunctionsFolder variable to the path of the current function
             baseFunctionsFolder = executionContext.FunctionAppDirectory;
+            logger = log;
         
             // Initialize Vars
             PlanDetails? planDetails = null;
             AuthenticationResult? result = null;
             var callLogRows = new PstnLogCallRows();
+            var SendNotification = false;
             List<CallDetails> CallUsageTotals = new List<CallDetails>(16);
 
             // Initialize Configuration object
@@ -51,7 +54,7 @@ namespace callRecords
             }
             catch (MsalUiRequiredException ex)
             {
-                log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
+                logger.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
             }
 
             if (result != null)
@@ -60,7 +63,8 @@ namespace callRecords
                 {
 
                     // Look for records from the start of the period(first of the month) to the end of the current day (11:59:59 PM)
-                    DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month ,1); // Beginging of this month
+                    //DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month, 1); // Beginging of this month
+                    DateTime fromDateTime = DateTime.Now.AddDays(-89); // Beginging of this month
                     DateTime toDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month , DateTime.Now.Day,11,59,59); // End of Today
                     
                     // Initial MS Graph Uri for the "getPstnCalls" API
@@ -68,10 +72,10 @@ namespace callRecords
                     
                     // Add Authorization Header
                     httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.AccessToken);
-
-                    try
+                    
+                    do
                     {
-                        do
+                        try
                         {
                             // Get the Call Records via MS Graph API and Deserialize the JSON into a PstnLogCallRows object
                             var res = httpClient.GetAsync(url).Result;
@@ -138,11 +142,40 @@ namespace callRecords
                                                                 });
                                         }
                                     }
+                                }
                             }
-                            }
-                        } while(callLogRows != null && callLogRows.odatanextlink != null);
+                        }                            
+                        catch (Exception ex)
+                        {
+                            log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
+                            continue;
+                        }
+                    
+                    } while(callLogRows != null && callLogRows.odatanextlink != null);
 
-                        // Send the Notification based on configuration setting Console or Teams...
+                    // Check if we need to send a notification
+                    if (GenConfig.SendOnlyWhenThresholdExceeded)
+                    {
+                            // If we are under the threshold limit for each pool , then do not send a notification
+                            if (CallUsageTotals.Any(p => (p.callDurationTotal / p.planDetails.planLimit) * 100 < GenConfig.ThresholdLimit))
+                            {
+                                log.LogInformation(string.Format("Threshold not exceeded for any pools. No Notification sent. Executed at: {0}", DateTime.Now));
+                                return;
+                            }
+                            else
+                            {
+                                SendNotification = true;
+                            }
+                    }
+                    else
+                    {
+                        SendNotification = true;
+                    }
+                    
+                    if (SendNotification)
+                    {                    
+                        // EXTENSIONS: Send the Notification based on configuration setting to Console or Teams...
+                        // Send the Notification based on configuration setting to Console, Teams. or ALL...
                         switch (GenConfig.NotificationType)
                         {
                             case "Teams":
@@ -151,12 +184,11 @@ namespace callRecords
                             case "Console":
                                     ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
                                     break;
+                            case "ALL":
+                                    TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    break;
                         }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
                     }
                 }
             }
@@ -180,7 +212,9 @@ namespace callRecords
         if (call.destinationContext == "Domestic")
             callIsDomestic = true;
             
-            // Get the limit for the plan buckets (DOMESTIC_US_PR_CA_UK_OutBound_Limit,DOMESTIC_Other_OutBound_Limit,INTERNATIONAL_ALL_OutBound_Limit )
+            // Get the limit for the plan buckets, The plan buckets are defined in the plans.json file
+            // If we are missing a Plan Bucket definition, we will return a limit value of -1 and 
+            // output a message to add it to the plans.json file
             KeyValuePair<string,int> currentCallTypePlanLimit = getPlanLimitByLicenseCapability(call.licenseCapability, callIsDomestic, InSelectCountriesFlag);
 
             // Return PLan Details
@@ -199,6 +233,13 @@ namespace callRecords
                         
             // linq query to get element in List<Plan> where Plan.LicenseCapability == licenseCapability
             Plan plan = callingPlans.Where(p => p.LicenseCapability == licenseCapability).FirstOrDefault();
+
+            // If the plan is null, this means we do not have Plan limits configured for this LicenseCapability. Please Update the plans.json file
+            if(plan == null)
+            {
+                plan = new Plan { LicenseCapability = licenseCapability, DOMESTIC_US_PR_CA_UK_OutBound_Limit = -1, DOMESTIC_Other_OutBound_Limit = -1, INTERNATIONAL_ALL_OutBound_Limit = -1 };
+                logger.LogError(string.Format("Plan Limit not configured for LicenseCapability: {0}. Please Update the plans.json file",licenseCapability));
+            }
 
             if (callIsDomestic)
             {
