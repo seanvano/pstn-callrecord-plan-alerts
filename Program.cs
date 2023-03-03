@@ -53,7 +53,7 @@ namespace callRecords
             }
             catch (MsalUiRequiredException ex)
             {
-                log.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
+                logger.LogError(string.Format("{0}.Executed at: {1}",ex.Message, DateTime.Now));
             }
 
             if (result != null)
@@ -62,7 +62,8 @@ namespace callRecords
                 {
 
                     // Look for records from the start of the period(first of the month) to the end of the current day (11:59:59 PM)
-                    DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month -2 ,1); // Beginging of this month
+                    //DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month, 1); // Beginging of this month
+                    DateTime fromDateTime = DateTime.Now.AddDays(-89); // Beginging of this month
                     DateTime toDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month , DateTime.Now.Day,11,59,59); // End of Today
                     
                     // Initial MS Graph Uri for the "getPstnCalls" API
@@ -160,6 +161,10 @@ namespace callRecords
                         case "Console":
                                 ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
                                 break;
+                        case "ALL":
+                                TeamsNotification.SendAdaptiveCardWithTemplating(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                ConsoleNotification.WriteToConsole(CallUsageTotals,GenConfig,log).ConfigureAwait(false).GetAwaiter().GetResult();
+                                break;
                     }
                 }
             }
@@ -183,7 +188,9 @@ namespace callRecords
         if (call.destinationContext == "Domestic")
             callIsDomestic = true;
             
-            // Get the limit for the plan buckets (DOMESTIC_US_PR_CA_UK_OutBound_Limit,DOMESTIC_Other_OutBound_Limit,INTERNATIONAL_ALL_OutBound_Limit )
+            // Get the limit for the plan buckets, The plan buckets are defined in the plans.json file
+            // If we are missing a Plan Bucket definition, we will return a limit value of -1 and 
+            // output a message to add it to the plans.json file
             KeyValuePair<string,int> currentCallTypePlanLimit = getPlanLimitByLicenseCapability(call.licenseCapability, callIsDomestic, InSelectCountriesFlag);
 
             // Return PLan Details
@@ -209,7 +216,6 @@ namespace callRecords
                 plan = new Plan { LicenseCapability = licenseCapability, DOMESTIC_US_PR_CA_UK_OutBound_Limit = -1, DOMESTIC_Other_OutBound_Limit = -1, INTERNATIONAL_ALL_OutBound_Limit = -1 };
                 logger.LogError(string.Format("Plan Limit not configured for LicenseCapability: {0}. Please Update the plans.json file",licenseCapability));
             }
-
 
             if (callIsDomestic)
             {
